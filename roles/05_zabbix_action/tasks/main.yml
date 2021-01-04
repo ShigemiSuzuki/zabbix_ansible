@@ -1,0 +1,31 @@
+---
+- name: Deploy trigger action
+  community.zabbix.zabbix_action:
+    server_url: "{{ zabbix_server_url }}"
+    login_user: "{{ zabbix_login_user }}"
+    login_password: "{{ zabbix_login_password }}"
+    name: "01_Send alerts to Admin"
+    event_source: 'trigger'
+    state: present
+    status: enabled
+    esc_period: "1h"
+    conditions:
+      - type: 'trigger_severity'
+        operator: '>='
+        value: 'Average'
+    operations:
+      - type: send_message
+        media_type: '01_Alert email'
+        send_to_users:
+          - 'Alert'
+    recovery_operations:
+      - type: send_message
+        media_type: '01_Alert email'
+        send_to_users:
+          - 'Alert'
+    acknowledge_operations:
+      - type: send_message
+        media_type: '01_Alert email'
+        send_to_users:
+          - 'Alert'
+
