@@ -1,7 +1,7 @@
 ---
 - name: Dwonload Zabbix Repo
   get_url: 
-    url: "{{repo_url}}"
+    url: "{{zabbix_repofile}}"
     dest: /tmp/
 
 - name: Install Zabbix Repo
