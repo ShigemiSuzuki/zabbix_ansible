@@ -6,6 +6,6 @@ ansibleでRaspberryPi 4Bにzabbixを構築する
 4. ansibleサーバから証明書認証によってロクイン出来るようにする  
      $ ssh-keygen  
      $ ssh-copy-id pi@xxx.xxx.xxx.xxx (RaspberryPiのIP)  
-5. ansibleサーバで
-　　　$ ansible-playbook -i inventory/inventory.ini site.yml
+5. ansibleサーバで  
+     $ ansible-playbook -i inventory/inventory.ini site.yml  
 7. 基本構築完了
