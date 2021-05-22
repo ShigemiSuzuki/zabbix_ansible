@@ -1,9 +1,0 @@
-ap01,01_Network,10.10.0.11,01_ICMP_5min
-ap02,01_Network,10.10.0.12,01_ICMP_5min
-ap03,01_Network,10.10.0.13,01_ICMP_5min
-ap04,01_Network,10.10.0.14,01_ICMP_5min
-sv01,02_Server,10.53.5.11,02_ICMP_1min
-sv02,02_Server,10.53.5.12,02_ICMP_1min
-sv03,02_Server,10.53.5.13,02_ICMP_1min
-sv04,02_Server,10.53.5.14,02_ICMP_1min
-nas01,03_Other,10.53.5.20,03_ICMP_15min
