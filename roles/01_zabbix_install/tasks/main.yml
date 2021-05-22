@@ -1,0 +1,115 @@
+---
+- name: Dwonload Zabbix Repo
+  get_url: 
+    url: "{{repo_url}}"
+    dest: /tmp/
+
+- name: Install Zabbix Repo
+  apt: 
+    deb: "/tmp/{{zabbix_repo_deb}}"
+    update_cache: yes
+
+- name: apt install zabbix
+  become: true
+  apt:
+    update_cache: yes
+    name: 
+      - zabbix-server-mysql
+      - zabbix-frontend-php
+      - zabbix-apache-conf
+      - zabbix-agent
+      - mariadb-server
+      - python-pymysql
+      - python3-pymysql
+      - apache2
+
+- name: modify file {{ mysql_server_file }}
+  lineinfile:
+    path: "{{ mysql_server_file }}"
+    regexp: ^innodb_file_per_table
+    insertafter: '^\[mysqld\]'
+    line: innodb_file_per_table = 1
+
+- name: restart mariadb 
+  service:
+    name: mysqld
+    state: restarted
+    enabled: yes
+
+- name: enabled and start {{ mysql_name }}
+  service:
+    name: "{{ mysql_name }}"
+    state: started
+    enabled: yes
+
+- name: create database zabbix
+  community.mysql.mysql_db:
+    login_unix_socket: "/var/run/mysqld/mysqld.sock" 
+    name: zabbix
+    state: present
+    encoding: utf8
+    collation: utf8_bin
+
+- name: create dbuser zabbix
+#  mysql_user:
+  community.mysql.mysql_user:
+    login_unix_socket: "/var/run/mysqld/mysqld.sock" 
+    name: zabbix
+    password: "{{ vars.zabbix_mysql_password }}"
+    priv: 'zabbix.*:ALL,GRANT'
+    state: present
+  no_log: true
+
+- name: check to exist zabbix table. ignore status is OK.
+  become: true
+  shell: mysql -u root -s zabbix -e "select count(*) from users"
+  ignore_errors: yes
+  register: count_users
+- debug: var=count_users
+
+- name: insert zabbix DB
+  shell: zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql zabbix -u root
+  when: count_users.rc != 0
+
+- name: modify file /etc/zabbix/apache.conf
+  lineinfile:
+    path: /etc/zabbix/apache.conf
+    state: present
+    backrefs: no
+    regexp: 'date.timezone'
+    line: '        php_value date.timezone Asia/Tokyo' 
+
+- name: enabled and start httpd
+  service:
+    name: apache2
+    state: started
+    enabled: yes
+
+- name: modify file /etc/zabbix/zabbix_server.conf
+  lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    state: present
+    backrefs: no
+    regexp: 'DBPassword=$'
+    line: "DBPassword={{ vars.zabbix_mysql_password }}"
+  no_log: true
+
+- name: restart mariadb
+  service: name=mariadb state=restarted enabled=yes
+
+- name: restart zabbix-server
+  service: name=zabbix-server state=restarted enabled=yes
+
+- name: restart httpd
+  service: name=apache2 state=restarted enabled=yes
+
+- name: modify file /etc/zabbix/web/zabbix.conf.php
+  template:
+    src: zabbix.conf.php.j2
+    dest: /etc/zabbix/web/zabbix.conf.php
+    owner: www-data
+    group: www-data
+    mode: 0644
+
+- name: restart zabbix-server
+  service: name=zabbix-server state=restarted enabled=yes

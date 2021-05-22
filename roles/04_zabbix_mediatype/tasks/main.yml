@@ -1,0 +1,20 @@
+---
+- name: 'Create an email mediatype with message templates'
+  community.zabbix.zabbix_mediatype:
+    name: "01_Alert email"
+    server_url: "{{ zabbix_server_url }}"
+    login_user: "{{ zabbix_login_user }}"
+    login_password: "{{ zabbix_login_password }}"
+    type: 'email'
+    smtp_server: "{{ smtp_server }}"
+    smtp_email: "{{ smtp_from_address }}"
+    smtp_helo: "{{ smtp_domain }}"
+    message_templates:
+      - eventsource: triggers
+        recovery: operations
+        subject: "【障害】{EVENT.NAME}"
+        body: "発生日時： {EVENT.TIME} on {EVENT.DATE}\r\n監視項目： {EVENT.NAME}\r\n対象： {HOST.NAME}\r\nイベントID： {EVENT.ID}\r\n"
+      - eventsource: triggers
+        recovery: recovery_operations
+        subject: "【復旧】{EVENT.NAME}"
+        body: "発生日時： {EVENT.TIME} on {EVENT.DATE}\r\n監視項目： {EVENT.NAME}\r\n対象： {HOST.NAME}\r\nイベントID： {EVENT.ID}\r\n"
